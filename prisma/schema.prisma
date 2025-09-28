@@ -6,9 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") 
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Account {
@@ -49,20 +49,18 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  profile       Profile?
-  children      Child[]
-  caregiverCouple CaregiverCouple?
-  bookingsAsParent Booking[] @relation("ParentBookings")
-  bookingsAsCaregiver Booking[] @relation("CaregiverBookings")
-  reviewsAsParent Review[] @relation("ParentReviews")
-  reviewsAsCaregiver Review[] @relation("CaregiverReviews")
-  messageThreadsAsParent MessageThread[] @relation("ParentThreads")
-  messageThreadsAsCaregiver MessageThread[] @relation("CaregiverThreads")
-  messages      Message[]
-  notifications Notification[]
-  payouts       Payout[]
+  accounts               Account[]
+  sessions               Session[]
+  profile                Profile?
+  children               Child[]
+  caregiverCouple        CaregiverCouple?
+  bookingsAsParent       Booking[]        @relation("ParentBookings")
+  reviewsAsParent        Review[]         @relation("ParentReviews")
+  messageThreadsAsParent MessageThread[]  @relation("ParentThreads")
+  messages               Message[]
+  notifications          Notification[]
+  // REMOVE this line:
+  // payouts       Payout[]
 }
 
 model VerificationToken {
@@ -99,52 +97,52 @@ model Child {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  parent User @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parent   User           @relation(fields: [parentId], references: [id], onDelete: Cascade)
   bookings BookingChild[]
 }
 
 model CaregiverCouple {
-  id                String              @id @default(cuid())
-  userId            String              @unique
-  partnerOneName    String
-  partnerTwoName    String
-  yearsExperience   Int
-  bio               String
-  hourlyRateCents   Int
-  maxKids           Int
-  languages         String[]
-  address           String
-  city              String
-  state             String
-  country           String
-  zipCode           String
-  phone             String
-  isVerified        Boolean             @default(false)
-  backgroundStatus  BackgroundStatus    @default(PENDING)
-  references        String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  partnerOneName   String
+  partnerTwoName   String
+  yearsExperience  Int
+  bio              String
+  hourlyRateCents  Int
+  maxKids          Int
+  languages        String[]
+  address          String
+  city             String
+  state            String
+  country          String
+  zipCode          String
+  phone            String
+  isVerified       Boolean          @default(false)
+  backgroundStatus BackgroundStatus @default(PENDING)
+  references       String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  availability      CaregiverAvailability[]
-  listings          Listing[]
-  bookings          Booking[]           @relation("CaregiverBookings")
-  reviews           Review[]            @relation("CaregiverReviews")
-  messageThreads    MessageThread[]     @relation("CaregiverThreads")
-  backgroundDocs    BackgroundDocument[]
-  payouts           Payout[]
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availability   CaregiverAvailability[]
+  listings       Listing[]
+  bookings       Booking[]
+  reviews        Review[]                @relation("CaregiverReviews")
+  messageThreads MessageThread[]         @relation("CaregiverThreads")
+  backgroundDocs BackgroundDocument[]
+  payouts        Payout[]
 }
 
 model CaregiverAvailability {
-  id                String   @id @default(cuid())
-  caregiverId       String
-  weekday           Int      // 0-6 (Sunday-Saturday)
-  startTime         Int      // minutes since midnight
-  endTime           Int      // minutes since midnight
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id          String   @id @default(cuid())
+  caregiverId String
+  weekday     Int // 0-6 (Sunday-Saturday)
+  startTime   Int // minutes since midnight
+  endTime     Int // minutes since midnight
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  caregiver         CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
 
   @@unique([caregiverId, weekday])
 }
@@ -162,17 +160,17 @@ model Listing {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  caregiver     CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
-  bookings      Booking[]
+  caregiver      CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  bookings       Booking[]
   messageThreads MessageThread[]
-  reviews       Review[]
+  reviews        Review[]
 }
 
 model Booking {
   id          String        @id @default(cuid())
   parentId    String
   caregiverId String
-  listingId   String
+  listingId   String?
   startAt     DateTime
   endAt       DateTime
   hours       Decimal       @db.Decimal(4, 2)
@@ -182,13 +180,13 @@ model Booking {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  parent      User          @relation("ParentBookings", fields: [parentId], references: [id], onDelete: Cascade)
-  caregiver   CaregiverCouple @relation("CaregiverBookings", fields: [caregiverId], references: [id], onDelete: Cascade)
-  listing     Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  children    BookingChild[]
-  payments    Payment[]
-  reviews     Review[]
-  messageThread MessageThread?
+  parent    User            @relation("ParentBookings", fields: [parentId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  listing   Listing?        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  children  BookingChild[]
+  payment   Payment?        @relation("BookingPayment")
+  review    Review?         @relation("BookingReview")
+  thread    MessageThread?  @relation("BookingToThread")
 
   @@index([parentId])
   @@index([caregiverId])
@@ -197,19 +195,19 @@ model Booking {
 }
 
 model BookingChild {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   bookingId String
   childId   String
 
-  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  child     Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  child   Child   @relation(fields: [childId], references: [id], onDelete: Cascade)
 
   @@unique([bookingId, childId])
 }
 
 model Payment {
   id                    String        @id @default(cuid())
-  bookingId             String
+  bookingId             String        @unique // ← add @unique
   stripePaymentIntentId String        @unique
   amountCents           Int
   currency              String        @default("usd")
@@ -217,21 +215,21 @@ model Payment {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
-  booking               Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking Booking @relation("BookingPayment", fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([bookingId])
   @@index([stripePaymentIntentId])
 }
 
 model Payout {
-  id          String      @id @default(cuid())
+  id          String       @id @default(cuid())
   caregiverId String
   amountCents Int
   status      PayoutStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  caregiver   CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
 
   @@index([caregiverId])
 }
@@ -241,16 +239,16 @@ model Review {
   bookingId   String   @unique
   parentId    String
   caregiverId String
-  listingId   String
-  rating      Int      // 1-5
+  listingId   String?
+  rating      Int // 1-5
   text        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  booking     Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  parent      User    @relation("ParentReviews", fields: [parentId], references: [id], onDelete: Cascade)
-  caregiver   CaregiverCouple @relation("CaregiverReviews", fields: [caregiverId], references: [id], onDelete: Cascade)
-  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  booking   Booking         @relation("BookingReview", fields: [bookingId], references: [id], onDelete: Cascade)
+  parent    User            @relation("ParentReviews", fields: [parentId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation("CaregiverReviews", fields: [caregiverId], references: [id], onDelete: Cascade)
+  listing   Listing?        @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([caregiverId])
   @@index([parentId])
@@ -258,24 +256,26 @@ model Review {
 }
 
 model MessageThread {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   parentId      String
   caregiverId   String
-  listingId     String
-  lastMessageAt DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  listingId     String?
+  bookingId     String?   @unique // ← add @unique
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  parent        User     @relation("ParentThreads", fields: [parentId], references: [id], onDelete: Cascade)
-  caregiver     CaregiverCouple @relation("CaregiverThreads", fields: [caregiverId], references: [id], onDelete: Cascade)
-  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  messages      Message[]
-  booking       Booking?
+  parent    User            @relation("ParentThreads", fields: [parentId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation("CaregiverThreads", fields: [caregiverId], references: [id], onDelete: Cascade)
+  listing   Listing?        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  booking   Booking?        @relation("BookingToThread", fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@unique([parentId, caregiverId, listingId])
   @@index([parentId])
   @@index([caregiverId])
   @@index([listingId])
+  @@index([bookingId])
 }
 
 model Message {
@@ -285,21 +285,21 @@ model Message {
   body      String
   createdAt DateTime @default(now())
 
-  thread    MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  sender    User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  thread MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender User          @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([threadId])
   @@index([senderId])
 }
 
 model BackgroundDocument {
-  id          String           @id @default(cuid())
+  id          String       @id @default(cuid())
   caregiverId String
   type        DocumentType
   fileUrl     String
-  createdAt   DateTime         @default(now())
+  createdAt   DateTime     @default(now())
 
-  caregiver   CaregiverCouple  @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  caregiver CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
 
   @@index([caregiverId])
 }
@@ -312,7 +312,7 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([read])
