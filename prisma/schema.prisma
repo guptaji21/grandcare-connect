@@ -180,13 +180,13 @@ model Booking {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  parent    User            @relation("ParentBookings", fields: [parentId], references: [id], onDelete: Cascade)
-  caregiver CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
-  listing   Listing?        @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  children  BookingChild[]
-  payment   Payment?        @relation("BookingPayment")
-  review    Review?         @relation("BookingReview")
-  thread    MessageThread?  @relation("BookingToThread")
+  parent        User            @relation("ParentBookings", fields: [parentId], references: [id], onDelete: Cascade)
+  caregiver     CaregiverCouple @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+  listing       Listing?        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  children      BookingChild[]
+  payment       Payment?        @relation("BookingPayment")
+  review        Review?         @relation("BookingReview")
+  messageThread MessageThread?  @relation("BookingToThread")
 
   @@index([parentId])
   @@index([caregiverId])
